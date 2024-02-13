@@ -617,6 +617,14 @@ cloneDB(CopyDataSpec *copySpecs)
 
 	(void) print_summary(copySpecs);
 
+	fformat(stdout, "\n");
+	fformat(stdout, "\n");
+    fformat(stdout, "######################################################################\n");
+    fformat(stdout, "######################### DB HAS BEEN CLONED #########################\n");
+    fformat(stdout, "######################################################################\n");
+	fformat(stdout, "\n");
+	fformat(stdout, "\n");
+
 	/* time to close the catalogs now */
 	if (!catalog_close_from_specs(copySpecs))
 	{

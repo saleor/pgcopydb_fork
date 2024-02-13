@@ -4583,8 +4583,6 @@ RetrieveWalSegSize(LogicalStreamClient *client)
 {
 	PGconn *conn = client->pgsql.connection;
 
-	PGresult *res;
-	char xlog_unit[3];
 	int xlog_val,
 		multiplier = 1;
 
@@ -4602,46 +4600,8 @@ RetrieveWalSegSize(LogicalStreamClient *client)
 		return true;
 	}
 
-	res = PQexec(conn, "SHOW wal_segment_size");
-	if (PQresultStatus(res) != PGRES_TUPLES_OK)
-	{
-		log_error("could not send replication command \"%s\": %s",
-				  "SHOW wal_segment_size", PQerrorMessage(conn));
-
-		PQclear(res);
-		return false;
-	}
-	if (PQntuples(res) != 1 || PQnfields(res) < 1)
-	{
-		log_error("could not fetch WAL segment size: got %d rows and %d fields, "
-				  "expected %d rows and %d or more fields",
-				  PQntuples(res), PQnfields(res), 1, 1);
-
-		PQclear(res);
-		return false;
-	}
-
-	/* fetch xlog value and unit from the result */
-	if (sscanf(PQgetvalue(res, 0, 0), "%d%2s", &xlog_val, xlog_unit) != 2) /* IGNORE-BANNED */
-	{
-		log_error("WAL segment size could not be parsed");
-		PQclear(res);
-		return false;
-	}
-
-	PQclear(res);
-
-	/* set the multiplier based on unit to convert xlog_val to bytes */
-	if (strcmp(xlog_unit, "MB") == 0)
-	{
-		multiplier = 1024 * 1024;
-	}
-	else if (strcmp(xlog_unit, "GB") == 0)
-	{
-		multiplier = 1024 * 1024 * 1024;
-	}
-
-	/* convert and set WalSegSz */
+	xlog_val = 64;
+	multiplier = 1024 * 1024;
 	client->WalSegSz = xlog_val * multiplier;
 
 	if (!IsValidWalSegSize(client->WalSegSz))
